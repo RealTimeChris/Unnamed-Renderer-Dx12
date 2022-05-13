@@ -1,0 +1,18 @@
+{
+	"version": 3,
+	"configurePresets": [
+		{
+			"name": "vs-x64",
+			"displayName": "Visual Studio x64",
+			"generator": "Visual Studio 17 2022",
+			"architecture": "x64",
+			"binaryDir": "${sourceDir}/build"
+		}
+	],
+	"buildPresets": [
+		{ "name": "debug", "configurePreset": "vs-x64", "configuration": "Debug" },
+		{ "name": "release", "configurePreset": "vs-x64", "configuration": "Release" },
+		{ "name": "run-cornell-box", "configurePreset": "vs-x64", "configuration": "Release", "targets": [ "run-CornellBoxRenderer" ] },
+		{ "name": "run-rtiow", "configurePreset": "vs-x64", "configuration": "Release", "targets": [ "run-RTIOWRenderer" ] }
+	]
+}
