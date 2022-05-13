@@ -1,0 +1,5 @@
+.vs/
+x64/
+Unnamed Renderer (DX12)/x64/build/
+build/CMakeCache.txt
+build/
