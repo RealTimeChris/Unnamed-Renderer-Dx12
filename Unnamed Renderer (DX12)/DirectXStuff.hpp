@@ -27,6 +27,7 @@
 #include <dxcapi.h>
 #include <math.h>
 #include <random>
+#include <bit>
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -121,7 +122,7 @@ namespace DirectXStuff {
 	}
 
 	// Worker group dimension checking and setting. (Don't forget to set these values in the Compute Shader)
-	uint3 SetGroupCountPerGrid(uint3 DesiredTSGridDimensions, uint3 DesiredTSGroupDimensions) {
+	constexpr uint3 SetGroupCountPerGrid(uint3 DesiredTSGridDimensions, uint3 DesiredTSGroupDimensions) {
 		uint3 GroupCountPerGrid{};
 
 		if ((DesiredTSGridDimensions.x % DesiredTSGroupDimensions.x != 0) || (DesiredTSGridDimensions.y % DesiredTSGroupDimensions.y != 0) ||
@@ -175,7 +176,7 @@ namespace DirectXStuff {
 	  public:
 		ID3DBlob* GetInterface() {
 			if (this->pInterface != nullptr) {
-				return reinterpret_cast<ID3DBlob*>(this->pInterface);
+				return std::bit_cast<ID3DBlob*>(this->pInterface);
 			} else {
 				return nullptr;
 			}
@@ -289,7 +290,7 @@ namespace DirectXStuff {
 
 	class DescriptorHeap : UnknownInterface {
 	  public:
-		DescriptorHeap(
+		constexpr DescriptorHeap(
 			ID3D12Device6* pDevice, unsigned __int32 DescriptorCount = 128u, const wchar_t* ObjectName = L"DescriptorHeap", unsigned __int32 NodeMask = 0u) {
 			D3D12_DESCRIPTOR_HEAP_DESC DecsriptorHeapDescription{};
 			DecsriptorHeapDescription.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -936,6 +937,10 @@ namespace DirectXStuff {
 			Result = pDXCLibrary->CreateBlobFromFile(Config.ShaderFileName, &Config.ShaderFileEncoding, &pSourceBlob);
 
 			ResultCheck(Result, L"CreateBlobFromFile() failed.", L"DirectXStuff::Shader Error");
+
+			Result = pDXCLibrary->CreateIncludeHandler(&pIncludeHandler);
+
+			ResultCheck(Result, L"CreateIncludeHandler() failed.", L"DirectXStuff::Shader Error");
 
 			Result = pDXCCompiler->Compile(
 				pSourceBlob, Config.ShaderFileName, Config.ShaderEntryPoint, Config.TargetProfile, NULL, 0u, NULL, 0u, pIncludeHandler, &pOperationResult);

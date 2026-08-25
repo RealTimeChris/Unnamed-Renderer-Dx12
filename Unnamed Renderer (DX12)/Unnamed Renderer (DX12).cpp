@@ -6,6 +6,7 @@
 #include "DirectXStuff.hpp"
 #include "WinRTStuff.hpp"
 #include <objbase.h>
+#include <chrono>
 #include <wincodec.h>
 #pragma comment(lib, "windowscodecs.lib")
 
@@ -104,45 +105,45 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	};
 
 	// View port dimesions, in pixels.
-	const uint3 PSViewPortDimensions{ 1280u, 720u, 1u };
-	const uint BytesPerFinalPixel{ 4u };
+	constexpr uint3 PSViewPortDimensions{ 1280u, 720u, 1u };
+	constexpr uint BytesPerFinalPixel{ 4u };
 
 	// Values for defining and mapping the workload.
-	const uint SecondsToRender{ 1u };
-	const uint FramesPerSecond{ 2u };
-	const uint FinalFrameCount{ FramesPerSecond * SecondsToRender };
-	const uint SamplesPerPixel{ 100u };
-	const uint3 TSGridDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, PSViewPortDimensions.z };
-	const uint3 TSGroupDimensions{ 128u, 8u, 1u };
-	const uint3 GridDimensionsByGroup{ DirectXStuff::SetGroupCountPerGrid(TSGridDimensions, TSGroupDimensions) };
+	constexpr uint SecondsToRender{ 1u };
+	constexpr uint FramesPerSecond{ 2u };
+	constexpr uint FinalFrameCount{ FramesPerSecond * SecondsToRender };
+	constexpr uint SamplesPerPixel{ 60u };
+	constexpr uint3 TSGridDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, PSViewPortDimensions.z };
+	constexpr uint3 TSGroupDimensions{ 128u, 8u, 1u };
+	constexpr uint3 GridDimensionsByGroup{ DirectXStuff::SetGroupCountPerGrid(TSGridDimensions, TSGroupDimensions) };
 
 	// World-Space View Port Values.
-	const float WSViewPortAspectRatio{ ( float )PSViewPortDimensions.x / ( float )PSViewPortDimensions.y };
+	constexpr float WSViewPortAspectRatio{ ( float )PSViewPortDimensions.x / ( float )PSViewPortDimensions.y };
 
 	// Camera definition values.
-	const float VFoVInDegrees{ 20.0f };
-	const float VFoVInRadians{ (VFoVInDegrees / 180.0f) * ( float )M_PI };
+	constexpr float VFoVInDegrees{ 20.0f };
+	constexpr float VFoVInRadians{ (VFoVInDegrees / 180.0f) * ( float )M_PI };
 	const float WSViewPortHeight{ 2.0f * ( float )tan(VFoVInRadians / 2.0f) };
 	const float WSViewPortWidth{ WSViewPortHeight * WSViewPortAspectRatio };
 
-	const float3 WSCameraLookFrom{ 13.0f, 2.0f, 3.0f };
-	const float3 WSCameraLookAt{ 0.0f, 0.0f, 0.0f };
-	const float3 WSCameraUp{ 0.0f, 1.0f, 0.0f };
+	constexpr float3 WSCameraLookFrom{ 13.0f, 2.0f, 3.0f };
+	constexpr float3 WSCameraLookAt{ 0.0f, 0.0f, 0.0f };
+	constexpr float3 WSCameraUp{ 0.0f, 1.0f, 0.0f };
 
 	// Depth-of-field values. Aperture of 0.0f yields a pinhole camera (no blurring).
-	const float Aperture{ 0.1f };
-	const float LensRadius{ Aperture * 0.5f };
-	const float FocusDistance{ 10.0f };
+	constexpr float Aperture{ 0.1f };
+	constexpr float LensRadius{ Aperture * 0.5f };
+	constexpr float FocusDistance{ 10.0f };
 
 	// Maximum path-tracing recursion depth.
-	const uint MaxRecursionDepth{ 30u };
+	constexpr uint MaxRecursionDepth{ 30u };
 
 	// Resource Values.
-	const uint3 ChaosTexelsDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, 5u };
-	const uint ChaosTexelCount{ ChaosTexelsDimensions.x * ChaosTexelsDimensions.y * ChaosTexelsDimensions.z };
-	const uint3 IntersectionMapDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, MaxRecursionDepth };
-	const uint2 AccumulationFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
-	const uint2 FinalFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
+	constexpr uint3 ChaosTexelsDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, 5u };
+	constexpr uint ChaosTexelCount{ ChaosTexelsDimensions.x * ChaosTexelsDimensions.y * ChaosTexelsDimensions.z };
+	constexpr uint3 IntersectionMapDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, MaxRecursionDepth };
+	constexpr uint2 AccumulationFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
+	constexpr uint2 FinalFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
 
 	// 32-bit Root Constants to be passed from Host to Device/Shader via Root Signature(s).
 	struct InlineRootConstants {
@@ -176,7 +177,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 		float FocusDistance;
 	};
 
-	const uint RootConstantCount{ sizeof(InlineRootConstants) / sizeof(float) };
+	constexpr uint RootConstantCount{ sizeof(InlineRootConstants) / sizeof(float) };
 
 	InlineRootConstants InlineRootConstants{};
 
@@ -222,6 +223,8 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	// Array of Spheres for the scene, to be provided for Shader use as a Structured Constant Buffer.
 	std::vector<Sphere> Spheres{};
 	unsigned __int32 NextObjectId{ 0u };
+
+	srand(static_cast<uint32_t>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 
 	auto RandomDouble = []() -> float {
 		return ( float )rand() / (( float )RAND_MAX + 1.0f);
@@ -298,10 +301,10 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 					CurrentSphere.MaterialId = 4u;
 				} else {
 					// Glass.
-					CurrentSphere.ColorStart = { 1.0f, 1.0f, 1.0f };
-					CurrentSphere.ColorEnd = { 1.0f, 1.0f, 1.0f };
-					CurrentSphere.MaterialScalarStart = 1.5f;
-					CurrentSphere.MaterialScalarEnd = 1.5f;
+					CurrentSphere.ColorStart = RandomColor();
+					CurrentSphere.ColorEnd = CurrentSphere.ColorStart;
+					CurrentSphere.MaterialScalarStart = RandomDouble();
+					CurrentSphere.MaterialScalarEnd = CurrentSphere.MaterialScalarStart;
 					CurrentSphere.MaterialId = 3u;
 				}
 
@@ -446,7 +449,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	Rectangles[4].ColorStart = { +1.80f, +1.80f, +1.80f };
 	Rectangles[4].ColorEnd = { 0.0f, +8.00f, +8.00f };
 	Rectangles[4].MaterialScalarStart = 0.4f;
-	Rectangles[4].MaterialScalarEnd = 0.4;
+	Rectangles[4].MaterialScalarEnd = 0.4f;
 	Rectangles[4].PrimitiveId = 1u;
 	Rectangles[4].ObjectId = RectangleIndex;
 	Rectangles[4].MaterialId = 5u;
@@ -567,7 +570,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	L0SpheresBufferConfig.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
 	L0SpheresBufferConfig.InitialResourceState = D3D12_RESOURCE_STATE_COPY_DEST;
 	L0SpheresBufferConfig.MemoryPool = D3D12_MEMORY_POOL_L0;
-	L0SpheresBufferConfig.BufferWidth = Spheres.size() * sizeof(Sphere);
+	L0SpheresBufferConfig.BufferWidth = static_cast<uint32_t>(Spheres.size() * sizeof(Sphere));
 
 	DirectXStuff::Buffer L0SpheresBuffer{ Device.GetInterface(), L0SpheresBufferConfig, L"L0SpheresBuffer" };
 
@@ -585,7 +588,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	L1SpheresBufferConfig.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
 	L1SpheresBufferConfig.InitialResourceState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	L1SpheresBufferConfig.MemoryPool = D3D12_MEMORY_POOL_L1;
-	L1SpheresBufferConfig.BufferWidth = Spheres.size() * sizeof(Sphere);
+	L1SpheresBufferConfig.BufferWidth = static_cast<uint32_t>(Spheres.size() * sizeof(Sphere));
 
 	DirectXStuff::Buffer L1SpheresBuffer{ Device.GetInterface(), L1SpheresBufferConfig, L"L1SpheresBuffer" };
 
@@ -681,13 +684,11 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 
 	DirectXStuff::Buffer L0ChaosTexelsBuffer{ Device.GetInterface(), L0ChaosTexelsBufferConfig, L"L0ChaosTexelsBuffer" };
 
-	D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopyDestToCopySource{};
-	L0ChaosTexelsBufferCopyDestToCopySource =
-		DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	const D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopyDestToCopySource{ DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(),
+		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE) };
 
-	D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopySourceToCopyDest{};
-	L0ChaosTexelsBufferCopySourceToCopyDest =
-		DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+	const D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopySourceToCopyDest{ DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(),
+		D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST) };
 
 	D3D12_TEXTURE_COPY_LOCATION L0ChaosTexelsBufferTextureCopyLocation{};
 	L0ChaosTexelsBufferTextureCopyLocation.pResource = L0ChaosTexelsBuffer.GetInterface();
@@ -1136,7 +1137,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	CurrentBackBufferIndex = SwapChain.GetInterface()->GetCurrentBackBufferIndex();
 
 	Result = SwapChain.GetInterface()->GetBuffer(
-		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
+		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), std::bit_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
 	DirectXStuff::ResultCheck(Result, L"GetBuffer() failed.", L"SwapChain Prep Error");
 
 	Result = SwapChainBackBuffers[CurrentBackBufferIndex]->SetName(L"SwapChainBackBuffer00");
@@ -1150,7 +1151,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	CurrentBackBufferIndex = SwapChain.GetInterface()->GetCurrentBackBufferIndex();
 
 	Result = SwapChain.GetInterface()->GetBuffer(
-		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
+		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), std::bit_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
 	DirectXStuff::ResultCheck(Result, L"GetBuffer() failed.", L"SwapChain Prep Error");
 
 	Result = SwapChainBackBuffers[CurrentBackBufferIndex]->SetName(L"SwapChainBackBuffer01");
@@ -1216,7 +1217,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 		IWICBitmap* pWICBitmap{ nullptr };
 		LocalResult = pWICFactory->CreateBitmapFromMemory(FinalFrameDimensions.x, FinalFrameDimensions.y, GUID_WICPixelFormat32bppRGBA,
 			FinalFrameDimensions.x * BytesPerFinalPixel, ( UINT )(FinalFrameDimensions.x * FinalFrameDimensions.y * BytesPerFinalPixel),
-			reinterpret_cast<BYTE*>(pPixelData), &pWICBitmap);
+			std::bit_cast<BYTE*>(pPixelData), &pWICBitmap);
 		DirectXStuff::ResultCheck(LocalResult, L"CreateBitmapFromMemory() failed.", L"SaveFinalFrameAsJpeg Error");
 
 		IWICStream* pWICStream{ nullptr };
