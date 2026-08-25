@@ -6,6 +6,7 @@
 #include "DirectXStuff.hpp"
 #include "WinRTStuff.hpp"
 #include <objbase.h>
+#include <chrono>
 #include <wincodec.h>
 #pragma comment(lib, "windowscodecs.lib")
 
@@ -104,45 +105,45 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	};
 
 	// View port dimesions, in pixels.
-	const uint3 PSViewPortDimensions{ 1280u, 720u, 1u };
-	const uint BytesPerFinalPixel{ 4u };
+	constexpr uint3 PSViewPortDimensions{ 1280u, 720u, 1u };
+	constexpr uint BytesPerFinalPixel{ 4u };
 
 	// Values for defining and mapping the workload.
-	const uint SecondsToRender{ 1u };
-	const uint FramesPerSecond{ 2u };
-	const uint FinalFrameCount{ FramesPerSecond * SecondsToRender };
-	const uint SamplesPerPixel{ 100u };
-	const uint3 TSGridDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, PSViewPortDimensions.z };
-	const uint3 TSGroupDimensions{ 128u, 8u, 1u };
-	const uint3 GridDimensionsByGroup{ DirectXStuff::SetGroupCountPerGrid(TSGridDimensions, TSGroupDimensions) };
+	constexpr uint SecondsToRender{ 1u };
+	constexpr uint FramesPerSecond{ 2u };
+	constexpr uint FinalFrameCount{ FramesPerSecond * SecondsToRender };
+	constexpr uint SamplesPerPixel{ 4000u };
+	constexpr uint3 TSGridDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, PSViewPortDimensions.z };
+	constexpr uint3 TSGroupDimensions{ 128u, 8u, 1u };
+	constexpr uint3 GridDimensionsByGroup{ DirectXStuff::SetGroupCountPerGrid(TSGridDimensions, TSGroupDimensions) };
 
 	// World-Space View Port Values.
-	const float WSViewPortAspectRatio{ ( float )PSViewPortDimensions.x / ( float )PSViewPortDimensions.y };
+	constexpr float WSViewPortAspectRatio{ ( float )PSViewPortDimensions.x / ( float )PSViewPortDimensions.y };
 
 	// Camera definition values.
-	const float VFoVInDegrees{ 20.0f };
-	const float VFoVInRadians{ (VFoVInDegrees / 180.0f) * ( float )M_PI };
+	constexpr float VFoVInDegrees{ 50.0f };
+	constexpr float VFoVInRadians{ (VFoVInDegrees / 180.0f) * ( float )M_PI };
 	const float WSViewPortHeight{ 2.0f * ( float )tan(VFoVInRadians / 2.0f) };
 	const float WSViewPortWidth{ WSViewPortHeight * WSViewPortAspectRatio };
 
-	const float3 WSCameraLookFrom{ 13.0f, 2.0f, 3.0f };
-	const float3 WSCameraLookAt{ 0.0f, 0.0f, 0.0f };
-	const float3 WSCameraUp{ 0.0f, 1.0f, 0.0f };
+	constexpr float3 WSCameraLookFrom{ 0.0f, 3.0f, 9.5f };
+	constexpr float3 WSCameraLookAt{ 0.0f, 3.0f, 0.0f };
+	constexpr float3 WSCameraUp{ 0.0f, 1.0f, 0.0f };
 
 	// Depth-of-field values. Aperture of 0.0f yields a pinhole camera (no blurring).
-	const float Aperture{ 0.1f };
-	const float LensRadius{ Aperture * 0.5f };
-	const float FocusDistance{ 10.0f };
+	constexpr float Aperture{ 0.0f };
+	constexpr float LensRadius{ Aperture * 0.5f };
+	constexpr float FocusDistance{ 9.5f };
 
 	// Maximum path-tracing recursion depth.
-	const uint MaxRecursionDepth{ 30u };
+	constexpr uint MaxRecursionDepth{ 30u };
 
 	// Resource Values.
-	const uint3 ChaosTexelsDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, 5u };
-	const uint ChaosTexelCount{ ChaosTexelsDimensions.x * ChaosTexelsDimensions.y * ChaosTexelsDimensions.z };
-	const uint3 IntersectionMapDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, MaxRecursionDepth };
-	const uint2 AccumulationFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
-	const uint2 FinalFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
+	constexpr uint3 ChaosTexelsDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, 5u };
+	constexpr uint ChaosTexelCount{ ChaosTexelsDimensions.x * ChaosTexelsDimensions.y * ChaosTexelsDimensions.z };
+	constexpr uint3 IntersectionMapDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y, MaxRecursionDepth };
+	constexpr uint2 AccumulationFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
+	constexpr uint2 FinalFrameDimensions{ PSViewPortDimensions.x, PSViewPortDimensions.y };
 
 	// 32-bit Root Constants to be passed from Host to Device/Shader via Root Signature(s).
 	struct InlineRootConstants {
@@ -176,7 +177,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 		float FocusDistance;
 	};
 
-	const uint RootConstantCount{ sizeof(InlineRootConstants) / sizeof(float) };
+	constexpr uint RootConstantCount{ sizeof(InlineRootConstants) / sizeof(float) };
 
 	InlineRootConstants InlineRootConstants{};
 
@@ -192,8 +193,8 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	InlineRootConstants.CurrentSampleIndex = 0u;
 	InlineRootConstants.PathMinDistance = 0.001f;
 	InlineRootConstants.PathMaxDistance = 10'000.0f;
-	InlineRootConstants.SkyTopColor = { 0.99f, 0.99f, 0.99f };
-	InlineRootConstants.SkyBottomColor = { 0.07f, 0.14f, 0.93f };
+	InlineRootConstants.SkyTopColor = { 0.0f, 0.0f, 0.0f };
+	InlineRootConstants.SkyBottomColor = { 0.0f, 0.0f, 0.0f };
 	InlineRootConstants.SphereCount = 0u;
 	InlineRootConstants.RectangleCount = 0u;
 	InlineRootConstants.TriangleCount = 0u;
@@ -219,324 +220,280 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	*/
 
 	// Array of Spheres for the scene, to be provided for Shader use as a Structured Constant Buffer.
-	// Array of Spheres for the scene, to be provided for Shader use as a Structured Constant Buffer.
 	std::vector<Sphere> Spheres{};
 	unsigned __int32 NextObjectId{ 0u };
 
-	auto RandomDouble = []() -> float {
-		return ( float )rand() / (( float )RAND_MAX + 1.0f);
-	};
-
-	auto RandomDoubleRange = [&](float Min, float Max) -> float {
-		return Min + (Max - Min) * RandomDouble();
-	};
-
-	auto RandomColor = [&]() -> float3 {
-		return float3{ RandomDouble(), RandomDouble(), RandomDouble() };
-	};
-
-	auto RandomColorRange = [&](float Min, float Max) -> float3 {
-		return float3{ RandomDoubleRange(Min, Max), RandomDoubleRange(Min, Max), RandomDoubleRange(Min, Max) };
-	};
-
-	// Ground sphere.
-	Sphere GroundSphere{};
-	GroundSphere.WSOriginStart = { 0.0f, -1000.0f, 0.0f };
-	GroundSphere.WSOriginEnd = { 0.0f, -1000.0f, 0.0f };
-	GroundSphere.WSRadiusStart = 1000.0f;
-	GroundSphere.WSRadiusEnd = 1000.0f;
-	GroundSphere.ColorStart = { 0.5f, 0.5f, 0.5f };
-	GroundSphere.ColorEnd = { 0.5f, 0.5f, 0.5f };
-	GroundSphere.MaterialScalarStart = 0.0f;
-	GroundSphere.MaterialScalarEnd = 0.0f;
-	GroundSphere.PrimitiveId = 0u;
-	GroundSphere.ObjectId = NextObjectId++;
-	GroundSphere.MaterialId = 2u;
-
-	Spheres.push_back(GroundSphere);
-
-	// Random small spheres.
-	for (__int32 a{ -11 }; a < 11; a++) {
-		for (__int32 b{ -11 }; b < 11; b++) {
-			float ChooseMat{ RandomDouble() };
-
-			float3 Center{ ( float )a + 0.9f * RandomDouble(), 0.2f, ( float )b + 0.9f * RandomDouble() };
-
-			float3 AvoidPoint{ 4.0f, 0.2f, 0.0f };
-			float3 Delta{ Center.x - AvoidPoint.x, Center.y - AvoidPoint.y, Center.z - AvoidPoint.z };
-			float DistanceFromAvoidPoint{ sqrt(Delta.x * Delta.x + Delta.y * Delta.y + Delta.z * Delta.z) };
-
-			if (DistanceFromAvoidPoint > 0.9f) {
-				Sphere CurrentSphere{};
-				CurrentSphere.WSOriginStart = Center;
-				CurrentSphere.WSOriginEnd = Center;
-				CurrentSphere.WSRadiusStart = 0.2f;
-				CurrentSphere.WSRadiusEnd = 0.2f;
-				CurrentSphere.PrimitiveId = 0u;
-				CurrentSphere.ObjectId = NextObjectId++;
-
-				if (ChooseMat < 0.2f) {
-					// Diffuse.
-					float3 Albedo01{ RandomColor() };
-					float3 Albedo02{ RandomColor() };
-					float3 Albedo{ Albedo01.x * Albedo02.x, Albedo01.y * Albedo02.y, Albedo01.z * Albedo02.z };
-
-					CurrentSphere.ColorStart = Albedo;
-					CurrentSphere.ColorEnd = Albedo;
-					CurrentSphere.MaterialScalarStart = 0.0f;
-					CurrentSphere.MaterialScalarEnd = 0.0f;
-					CurrentSphere.MaterialId = 2u;
-				} else if (ChooseMat < 0.55f) {
-					// Metal.
-					float3 Albedo{ RandomColorRange(0.5f, 1.0f) };
-					float Fuzz{ RandomDoubleRange(0.0f, 0.5f) };
-
-					CurrentSphere.ColorStart = Albedo;
-					CurrentSphere.ColorEnd = Albedo;
-					CurrentSphere.MaterialScalarStart = Fuzz;
-					CurrentSphere.MaterialScalarEnd = Fuzz;
-					CurrentSphere.MaterialId = 4u;
-				} else {
-					// Glass.
-					CurrentSphere.ColorStart = { 1.0f, 1.0f, 1.0f };
-					CurrentSphere.ColorEnd = { 1.0f, 1.0f, 1.0f };
-					CurrentSphere.MaterialScalarStart = 1.5f;
-					CurrentSphere.MaterialScalarEnd = 1.5f;
-					CurrentSphere.MaterialId = 3u;
-				}
-
-				Spheres.push_back(CurrentSphere);
-			}
-		}
-	}
-
-	// Three feature spheres.
+	// Glass sphere resting on the Cornell Box floor.
 	Sphere GlassSphere{};
-	GlassSphere.WSOriginStart = { 0.0f, 1.0f, 0.0f };
-	GlassSphere.WSOriginEnd = { 0.0f, 1.0f, 0.0f };
-	GlassSphere.WSRadiusStart = 1.0f;
-	GlassSphere.WSRadiusEnd = 1.0f;
+	GlassSphere.WSOriginStart = { 1.0f, 1.1f, 0.6f };
+	GlassSphere.WSOriginEnd = GlassSphere.WSOriginStart;
+	GlassSphere.WSRadiusStart = 1.1f;
+	GlassSphere.WSRadiusEnd = 1.1f;
 	GlassSphere.ColorStart = { 1.0f, 1.0f, 1.0f };
-	GlassSphere.ColorEnd = { 1.0f, 1.0f, 1.0f };
+	GlassSphere.ColorEnd = GlassSphere.ColorStart;
 	GlassSphere.MaterialScalarStart = 1.5f;
-	GlassSphere.MaterialScalarEnd = 1.5f;
+	GlassSphere.MaterialScalarEnd = GlassSphere.MaterialScalarStart;
 	GlassSphere.PrimitiveId = 0u;
 	GlassSphere.ObjectId = NextObjectId++;
 	GlassSphere.MaterialId = 3u;
 
 	Spheres.push_back(GlassSphere);
 
-	Sphere DiffuseSphere{};
-	DiffuseSphere.WSOriginStart = { -4.0f, 1.0f, 0.0f };
-	DiffuseSphere.WSOriginEnd = { -4.0f, 1.0f, 0.0f };
-	DiffuseSphere.WSRadiusStart = 1.0f;
-	DiffuseSphere.WSRadiusEnd = 1.0f;
-	DiffuseSphere.ColorStart = { 0.4f, 0.2f, 0.1f };
-	DiffuseSphere.ColorEnd = { 0.4f, 0.2f, 0.1f };
-	DiffuseSphere.MaterialScalarStart = 0.0f;
-	DiffuseSphere.MaterialScalarEnd = 0.0f;
-	DiffuseSphere.PrimitiveId = 0u;
-	DiffuseSphere.ObjectId = NextObjectId++;
-	DiffuseSphere.MaterialId = 2u;
-
-	Spheres.push_back(DiffuseSphere);
-
-	Sphere MetalSphere{};
-	MetalSphere.WSOriginStart = { 4.0f, 1.0f, 0.0f };
-	MetalSphere.WSOriginEnd = { 4.0f, 1.0f, 0.0f };
-	MetalSphere.WSRadiusStart = 1.0f;
-	MetalSphere.WSRadiusEnd = 1.0f;
-	MetalSphere.ColorStart = { 0.7f, 0.6f, 0.5f };
-	MetalSphere.ColorEnd = { 0.7f, 0.6f, 0.5f };
-	MetalSphere.MaterialScalarStart = 0.0f;
-	MetalSphere.MaterialScalarEnd = 0.0f;
-	MetalSphere.PrimitiveId = 0u;
-	MetalSphere.ObjectId = NextObjectId++;
-	MetalSphere.MaterialId = 4u;
-
-	Spheres.push_back(MetalSphere);
-
 	// Set the Sphere count in the Inline Root Constants.
 	InlineRootConstants.SphereCount = ( uint )Spheres.size();
 
 	// Array of Rectangles for the scene, to be provided for Shader use as a Structured Constant Buffer.
-	Rectangle Rectangles[5]{};
+	// Cornell Box: floor, ceiling, back/left/right walls, one ceiling light, and a 5-sided tall box.
+	Rectangle Rectangles[11]{};
 	unsigned __int32 RectangleIndex{ 0u };
 
-	Rectangles[0].Q1Start = { -8.0f, +2.0f, +5.0f };
-	Rectangles[0].Q1End = { -8.0f, +4.0f, +9.0f };
-	Rectangles[0].Q2Start = { -8.0f, +2.0f, +10.0f };
-	Rectangles[0].Q2End = { -8.0f, +4.0f, +14.0f };
-	Rectangles[0].Q3Start = { -8.0f, -2.0f, +5.0f };
-	Rectangles[0].Q3End = { -8.0f, -4.0f, +10.0f };
-	Rectangles[0].Q4Start = { -8.0f, -2.0f, +12.0f };
-	Rectangles[0].Q4End = { -8.0f, -4.0f, +14.0f };
-	Rectangles[0].ColorStart = { 0.0, 16.0, 0.0 };
-	Rectangles[0].ColorEnd = { 0.0, 16.0, 0.0 };
+	constexpr float3 WallColor{ 0.73f, 0.73f, 0.73f };
+	constexpr float3 GreenWallColor{ 0.12f, 0.45f, 0.15f };
+	constexpr float3 RedWallColor{ 0.65f, 0.05f, 0.05f };
+	constexpr float3 LightColor{ 15.0f, 15.0f, 15.0f };
+
+	// Tall box footprint, yawed ~18 degrees around its center so its right-hand face
+	// angles toward the glass sphere instead of sitting flat, so it can catch a reflection.
+	constexpr float BoxYMax{ 3.3f };
+	constexpr float BoxFLx{ -2.20806f };
+	constexpr float BoxFLz{ -0.68637f };
+	constexpr float BoxFRx{ -0.68637f };
+	constexpr float BoxFRz{ -0.19194f };
+	constexpr float BoxBLx{ -1.71363f };
+	constexpr float BoxBLz{ -2.20806f };
+	constexpr float BoxBRx{ -0.19194f };
+	constexpr float BoxBRz{ -1.71363f };
+
+	// Floor.
+	Rectangles[0].Q1Start = { -3.0f, 0.0f, -3.0f };
+	Rectangles[0].Q2Start = { -3.0f, 0.0f, +3.0f };
+	Rectangles[0].Q3Start = { +3.0f, 0.0f, -3.0f };
+	Rectangles[0].Q4Start = { +3.0f, 0.0f, +3.0f };
+	Rectangles[0].Q1End = Rectangles[0].Q1Start;
+	Rectangles[0].Q2End = Rectangles[0].Q2Start;
+	Rectangles[0].Q3End = Rectangles[0].Q3Start;
+	Rectangles[0].Q4End = Rectangles[0].Q4Start;
+	Rectangles[0].ColorStart = WallColor;
+	Rectangles[0].ColorEnd = WallColor;
 	Rectangles[0].MaterialScalarStart = 0.0f;
 	Rectangles[0].MaterialScalarEnd = 0.0f;
 	Rectangles[0].PrimitiveId = 1u;
 	Rectangles[0].ObjectId = RectangleIndex;
-	Rectangles[0].MaterialId = 5u;
+	Rectangles[0].MaterialId = 2u;
 
 	RectangleIndex++;
 
-	Rectangles[1].Q1Start = { +8.0f, +2.0f, +5.0f };
-	Rectangles[1].Q1End = { +8.0f, +4.0f, +9.0f };
-	Rectangles[1].Q2Start = { +8.0f, +2.0f, +10.0f };
-	Rectangles[1].Q2End = { +8.0f, +4.0f, +14.0f };
-	Rectangles[1].Q3Start = { +8.0f, -2.0f, +5.0f };
-	Rectangles[1].Q3End = { +8.0f, -4.0f, +10.0f };
-	Rectangles[1].Q4Start = { +8.0f, -2.0f, +12.0f };
-	Rectangles[1].Q4End = { +8.0f, -4.0f, +14.0f };
-	Rectangles[1].ColorStart = { 16.0, 0.0, 0.0 };
-	Rectangles[1].ColorEnd = { 16.0, 0.0, 0.0 };
+	// Ceiling.
+	Rectangles[1].Q1Start = { -3.0f, 6.0f, -3.0f };
+	Rectangles[1].Q2Start = { +3.0f, 6.0f, -3.0f };
+	Rectangles[1].Q3Start = { -3.0f, 6.0f, +3.0f };
+	Rectangles[1].Q4Start = { +3.0f, 6.0f, +3.0f };
+	Rectangles[1].Q1End = Rectangles[1].Q1Start;
+	Rectangles[1].Q2End = Rectangles[1].Q2Start;
+	Rectangles[1].Q3End = Rectangles[1].Q3Start;
+	Rectangles[1].Q4End = Rectangles[1].Q4Start;
+	Rectangles[1].ColorStart = WallColor;
+	Rectangles[1].ColorEnd = WallColor;
 	Rectangles[1].MaterialScalarStart = 0.0f;
 	Rectangles[1].MaterialScalarEnd = 0.0f;
 	Rectangles[1].PrimitiveId = 1u;
 	Rectangles[1].ObjectId = RectangleIndex;
-	Rectangles[1].MaterialId = 5u;
+	Rectangles[1].MaterialId = 2u;
 
 	RectangleIndex++;
 
-	Rectangles[2].Q1Start = { -8.0f, +0.0f, -8.0f };
-	Rectangles[2].Q1End = { -8.0f, +0.0f, -3.0f };
-	Rectangles[2].Q2Start = { +8.0f, +0.0f, -8.0f };
-	Rectangles[2].Q2End = { +8.0f, +0.0f, -3.0f };
-	Rectangles[2].Q3Start = { -8.0f, +8.0f, -8.0f };
-	Rectangles[2].Q3End = { -8.0f, 8.0f, -3.0f };
-	Rectangles[2].Q4Start = { +8.0f, 8.0f, -8.0f };
-	Rectangles[2].Q4End = { +8.0f, 8.0f, -3.0f };
-	Rectangles[2].ColorStart = { +0.0, +0.0, 16.0 };
-	Rectangles[2].ColorEnd = { +0.0f, +0.0f, +16.0f };
+	// Back wall.
+	Rectangles[2].Q1Start = { -3.0f, 0.0f, -3.0f };
+	Rectangles[2].Q2Start = { +3.0f, 0.0f, -3.0f };
+	Rectangles[2].Q3Start = { -3.0f, 6.0f, -3.0f };
+	Rectangles[2].Q4Start = { +3.0f, 6.0f, -3.0f };
+	Rectangles[2].Q1End = Rectangles[2].Q1Start;
+	Rectangles[2].Q2End = Rectangles[2].Q2Start;
+	Rectangles[2].Q3End = Rectangles[2].Q3Start;
+	Rectangles[2].Q4End = Rectangles[2].Q4Start;
+	Rectangles[2].ColorStart = WallColor;
+	Rectangles[2].ColorEnd = WallColor;
 	Rectangles[2].MaterialScalarStart = 0.0f;
 	Rectangles[2].MaterialScalarEnd = 0.0f;
 	Rectangles[2].PrimitiveId = 1u;
 	Rectangles[2].ObjectId = RectangleIndex;
-	Rectangles[2].MaterialId = 5u;
+	Rectangles[2].MaterialId = 2u;
 
 	RectangleIndex++;
 
-	Rectangles[3].Q1Start = { -18.0f, -6.0f, -10.0f };
-	Rectangles[3].Q1End = { -22.0f, -6.0f, -8.0f };
-	Rectangles[3].Q2Start = { +18.0f, -6.0f, -10.0f };
-	Rectangles[3].Q2End = { +22.0f, -6.0f, -8.0f };
-	Rectangles[3].Q3Start = { -18.0f, +18.0f, -12.0f };
-	Rectangles[3].Q3End = { -22.0f, +14.0f, -10.0f };
-	Rectangles[3].Q4Start = { +18.0f, +18.0f, -12.0f };
-	Rectangles[3].Q4End = { +22.0f, +14.0f, -10.0f };
-	Rectangles[3].ColorStart = { +0.97f, +0.99f, +0.99f };
-	Rectangles[3].ColorEnd = { +0.97f, +0.99f, +0.99f };
+	// Left wall (green).
+	Rectangles[3].Q1Start = { -3.0f, 0.0f, -3.0f };
+	Rectangles[3].Q2Start = { -3.0f, 6.0f, -3.0f };
+	Rectangles[3].Q3Start = { -3.0f, 0.0f, +3.0f };
+	Rectangles[3].Q4Start = { -3.0f, 6.0f, +3.0f };
+	Rectangles[3].Q1End = Rectangles[3].Q1Start;
+	Rectangles[3].Q2End = Rectangles[3].Q2Start;
+	Rectangles[3].Q3End = Rectangles[3].Q3Start;
+	Rectangles[3].Q4End = Rectangles[3].Q4Start;
+	Rectangles[3].ColorStart = GreenWallColor;
+	Rectangles[3].ColorEnd = GreenWallColor;
 	Rectangles[3].MaterialScalarStart = 0.0f;
-	Rectangles[3].MaterialScalarEnd = 0.0;
+	Rectangles[3].MaterialScalarEnd = 0.0f;
 	Rectangles[3].PrimitiveId = 1u;
 	Rectangles[3].ObjectId = RectangleIndex;
-	Rectangles[3].MaterialId = 3u;
+	Rectangles[3].MaterialId = 2u;
 
 	RectangleIndex++;
 
-	Rectangles[4].Q1Start = { 30.0f, -6.0f, 38.0f };
-	Rectangles[4].Q1End = { 30.0f, -6.0f, 38.0f };
-	Rectangles[4].Q2Start = { 30.0f, +16.0f, 38.0f };
-	Rectangles[4].Q2End = { 30.0f, +16.0f, 38.0f };
-	Rectangles[4].Q3Start = { 60.0f, -6.0f, 30.0f };
-	Rectangles[4].Q3End = { 60.0f, -6.0f, 30.0f };
-	Rectangles[4].Q4Start = { 60.0f, +16.0f, 30.0f };
-	Rectangles[4].Q4End = { 60.0f, +16.0f, 30.0f };
-	Rectangles[4].ColorStart = { +1.80f, +1.80f, +1.80f };
-	Rectangles[4].ColorEnd = { 0.0f, +8.00f, +8.00f };
-	Rectangles[4].MaterialScalarStart = 0.4f;
-	Rectangles[4].MaterialScalarEnd = 0.4;
+	// Right wall (red).
+	Rectangles[4].Q1Start = { +3.0f, 0.0f, -3.0f };
+	Rectangles[4].Q2Start = { +3.0f, 0.0f, +3.0f };
+	Rectangles[4].Q3Start = { +3.0f, 6.0f, -3.0f };
+	Rectangles[4].Q4Start = { +3.0f, 6.0f, +3.0f };
+	Rectangles[4].Q1End = Rectangles[4].Q1Start;
+	Rectangles[4].Q2End = Rectangles[4].Q2Start;
+	Rectangles[4].Q3End = Rectangles[4].Q3Start;
+	Rectangles[4].Q4End = Rectangles[4].Q4Start;
+	Rectangles[4].ColorStart = RedWallColor;
+	Rectangles[4].ColorEnd = RedWallColor;
+	Rectangles[4].MaterialScalarStart = 0.0f;
+	Rectangles[4].MaterialScalarEnd = 0.0f;
 	Rectangles[4].PrimitiveId = 1u;
 	Rectangles[4].ObjectId = RectangleIndex;
-	Rectangles[4].MaterialId = 5u;
+	Rectangles[4].MaterialId = 2u;
+
+	RectangleIndex++;
+
+	// Ceiling light.
+	Rectangles[5].Q1Start = { -1.5f, 5.98f, -0.6f };
+	Rectangles[5].Q2Start = { +1.5f, 5.98f, -0.6f };
+	Rectangles[5].Q3Start = { -1.5f, 5.98f, +0.6f };
+	Rectangles[5].Q4Start = { +1.5f, 5.98f, +0.6f };
+	Rectangles[5].Q1End = Rectangles[5].Q1Start;
+	Rectangles[5].Q2End = Rectangles[5].Q2Start;
+	Rectangles[5].Q3End = Rectangles[5].Q3Start;
+	Rectangles[5].Q4End = Rectangles[5].Q4Start;
+	Rectangles[5].ColorStart = LightColor;
+	Rectangles[5].ColorEnd = LightColor;
+	Rectangles[5].MaterialScalarStart = 0.0f;
+	Rectangles[5].MaterialScalarEnd = 0.0f;
+	Rectangles[5].PrimitiveId = 1u;
+	Rectangles[5].ObjectId = RectangleIndex;
+	Rectangles[5].MaterialId = 5u;
+
+	RectangleIndex++;
+
+	// Tall box: top face.
+	Rectangles[6].Q1Start = { BoxBLx, BoxYMax, BoxBLz };
+	Rectangles[6].Q2Start = { BoxFLx, BoxYMax, BoxFLz };
+	Rectangles[6].Q3Start = { BoxBRx, BoxYMax, BoxBRz };
+	Rectangles[6].Q4Start = { BoxFRx, BoxYMax, BoxFRz };
+	Rectangles[6].Q1End = Rectangles[6].Q1Start;
+	Rectangles[6].Q2End = Rectangles[6].Q2Start;
+	Rectangles[6].Q3End = Rectangles[6].Q3Start;
+	Rectangles[6].Q4End = Rectangles[6].Q4Start;
+	Rectangles[6].ColorStart = WallColor;
+	Rectangles[6].ColorEnd = WallColor;
+	Rectangles[6].MaterialScalarStart = 1.5f;
+	Rectangles[6].MaterialScalarEnd = 1.5f;
+	Rectangles[6].PrimitiveId = 1u;
+	Rectangles[6].ObjectId = RectangleIndex;
+	Rectangles[6].MaterialId = 3u;
+
+	RectangleIndex++;
+
+	// Tall box: front face.
+	Rectangles[7].Q1Start = { BoxFLx, 0.0f, BoxFLz };
+	Rectangles[7].Q2Start = { BoxFRx, 0.0f, BoxFRz };
+	Rectangles[7].Q3Start = { BoxFLx, BoxYMax, BoxFLz };
+	Rectangles[7].Q4Start = { BoxFRx, BoxYMax, BoxFRz };
+	Rectangles[7].Q1End = Rectangles[7].Q1Start;
+	Rectangles[7].Q2End = Rectangles[7].Q2Start;
+	Rectangles[7].Q3End = Rectangles[7].Q3Start;
+	Rectangles[7].Q4End = Rectangles[7].Q4Start;
+	Rectangles[7].ColorStart = WallColor;
+	Rectangles[7].ColorEnd = WallColor;
+	Rectangles[7].MaterialScalarStart = 1.5f;
+	Rectangles[7].MaterialScalarEnd = 1.5f;
+	Rectangles[7].PrimitiveId = 1u;
+	Rectangles[7].ObjectId = RectangleIndex;
+	Rectangles[7].MaterialId = 3u;
+
+	RectangleIndex++;
+
+	// Tall box: back face.
+	Rectangles[8].Q1Start = { BoxBLx, 0.0f, BoxBLz };
+	Rectangles[8].Q2Start = { BoxBLx, BoxYMax, BoxBLz };
+	Rectangles[8].Q3Start = { BoxBRx, 0.0f, BoxBRz };
+	Rectangles[8].Q4Start = { BoxBRx, BoxYMax, BoxBRz };
+	Rectangles[8].Q1End = Rectangles[8].Q1Start;
+	Rectangles[8].Q2End = Rectangles[8].Q2Start;
+	Rectangles[8].Q3End = Rectangles[8].Q3Start;
+	Rectangles[8].Q4End = Rectangles[8].Q4Start;
+	Rectangles[8].ColorStart = WallColor;
+	Rectangles[8].ColorEnd = WallColor;
+	Rectangles[8].MaterialScalarStart = 1.5f;
+	Rectangles[8].MaterialScalarEnd = 1.5f;
+	Rectangles[8].PrimitiveId = 1u;
+	Rectangles[8].ObjectId = RectangleIndex;
+	Rectangles[8].MaterialId = 3u;
+
+	RectangleIndex++;
+
+	// Tall box: left face.
+	Rectangles[9].Q1Start = { BoxBLx, 0.0f, BoxBLz };
+	Rectangles[9].Q2Start = { BoxFLx, 0.0f, BoxFLz };
+	Rectangles[9].Q3Start = { BoxBLx, BoxYMax, BoxBLz };
+	Rectangles[9].Q4Start = { BoxFLx, BoxYMax, BoxFLz };
+	Rectangles[9].Q1End = Rectangles[9].Q1Start;
+	Rectangles[9].Q2End = Rectangles[9].Q2Start;
+	Rectangles[9].Q3End = Rectangles[9].Q3Start;
+	Rectangles[9].Q4End = Rectangles[9].Q4Start;
+	Rectangles[9].ColorStart = WallColor;
+	Rectangles[9].ColorEnd = WallColor;
+	Rectangles[9].MaterialScalarStart = 1.5f;
+	Rectangles[9].MaterialScalarEnd = 1.5f;
+	Rectangles[9].PrimitiveId = 1u;
+	Rectangles[9].ObjectId = RectangleIndex;
+	Rectangles[9].MaterialId = 3u;
+
+	RectangleIndex++;
+
+	// Tall box: right face.
+	Rectangles[10].Q1Start = { BoxBRx, 0.0f, BoxBRz };
+	Rectangles[10].Q2Start = { BoxBRx, BoxYMax, BoxBRz };
+	Rectangles[10].Q3Start = { BoxFRx, 0.0f, BoxFRz };
+	Rectangles[10].Q4Start = { BoxFRx, BoxYMax, BoxFRz };
+	Rectangles[10].Q1End = Rectangles[10].Q1Start;
+	Rectangles[10].Q2End = Rectangles[10].Q2Start;
+	Rectangles[10].Q3End = Rectangles[10].Q3Start;
+	Rectangles[10].Q4End = Rectangles[10].Q4Start;
+	Rectangles[10].ColorStart = WallColor;
+	Rectangles[10].ColorEnd = WallColor;
+	Rectangles[10].MaterialScalarStart = 1.5f;
+	Rectangles[10].MaterialScalarEnd = 1.5f;
+	Rectangles[10].PrimitiveId = 1u;
+	Rectangles[10].ObjectId = RectangleIndex;
+	Rectangles[10].MaterialId = 3u;
 
 	RectangleIndex++;
 
 	// Set the Rectangle count in the Inline Root Constants.
 	InlineRootConstants.RectangleCount = sizeof(Rectangles) / sizeof(Rectangle);
 
-	// Triangle procedural primitives.
-	Triangle Triangles[5]{};
+	// Triangle procedural primitives. None are needed for the Cornell Box scene; a single
+	// out-of-scene placeholder is kept since the GPU-side buffer must be non-zero-sized.
+	Triangle Triangles[1]{};
 	unsigned __int32 TriangleIndex{ 0u };
 
-	Triangles[0].V1Start = { -50.0f, -10.0f, +28.0f };
-	Triangles[0].V1End = { -50.0f, -10.0f, +28.0f };
-	Triangles[0].V2Start = { -20.0f, +36.0f, +34.0f };
-	Triangles[0].V2End = { -20.0f, +45.0f, +34.0f };
-	Triangles[0].V3Start = { -10.0f, -10.0f, +30.0f };
-	Triangles[0].V3End = { -10.0f, -10.0f, +30.0f };
-	Triangles[0].ColorStart = { +0.97f, +0.85f, +0.13f };
-	Triangles[0].ColorEnd = { +0.65f, +0.85f, +0.65f };
+	Triangles[0].V1Start = { 1000.0f, 1000.0f, 1000.0f };
+	Triangles[0].V1End = Triangles[0].V1Start;
+	Triangles[0].V2Start = { 1001.0f, 1000.0f, 1000.0f };
+	Triangles[0].V2End = Triangles[0].V2Start;
+	Triangles[0].V3Start = { 1000.0f, 1001.0f, 1000.0f };
+	Triangles[0].V3End = Triangles[0].V3Start;
+	Triangles[0].ColorStart = { 0.0f, 0.0f, 0.0f };
+	Triangles[0].ColorEnd = { 0.0f, 0.0f, 0.0f };
 	Triangles[0].MaterialScalarStart = 0.0f;
 	Triangles[0].MaterialScalarEnd = 0.0f;
 	Triangles[0].PrimitiveId = 2u;
 	Triangles[0].ObjectId = TriangleIndex;
-	Triangles[0].MaterialId = 4u;
-
-	TriangleIndex++;
-
-	Triangles[1].V1Start = { +6.0f, 15.0f, 65.0f };
-	Triangles[1].V1End = { +6.0f, 15.0f, 65.0f };
-	Triangles[1].V2Start = { 0.0f, 12.0f, 65.0f };
-	Triangles[1].V2End = { 0.0f, 12.0f, 65.0f };
-	Triangles[1].V3Start = { -6.0f, 150.0f, 65.0f };
-	Triangles[1].V3End = { -6.0f, 15.0f, 65.0f };
-	Triangles[1].ColorStart = { 0.15f, +0.43f, +1.0f };
-	Triangles[1].ColorEnd = { +0.15f, +0.43f, +1.0f };
-	Triangles[1].MaterialScalarStart = 0.0f;
-	Triangles[1].MaterialScalarEnd = 0.0f;
-	Triangles[1].PrimitiveId = 2u;
-	Triangles[1].ObjectId = TriangleIndex;
-	Triangles[1].MaterialId = 4u;
-
-	TriangleIndex++;
-
-	Triangles[2].V1Start = { +4.0f, -4.0f, +5.0f };
-	Triangles[2].V1End = { +5.0f, -4.0f, +7.0f };
-	Triangles[2].V2Start = { -4.0f, -4.0f, +1.0f };
-	Triangles[2].V2End = { -1.0f, -4.0f, +3.0f };
-	Triangles[2].V3Start = { +0.0f, -4.0f, +1.0f };
-	Triangles[2].V3End = { +2.0f, -4.0f, +3.0f };
-	Triangles[2].ColorStart = { +12.0f, +0.0f, +12.0f };
-	Triangles[2].ColorEnd = { +12.0f, +0.0f, +12.0f };
-	Triangles[2].MaterialScalarStart = 0.0f;
-	Triangles[2].MaterialScalarEnd = 0.0f;
-	Triangles[2].PrimitiveId = 2u;
-	Triangles[2].ObjectId = TriangleIndex;
-	Triangles[2].MaterialId = 5u;
-
-	TriangleIndex++;
-
-	Triangles[3].V1Start = { -34.0f, 5.0f, +40.0f };
-	Triangles[3].V1End = { -28.0f, 5.0f, +44.0f };
-	Triangles[3].V2Start = { -18.0f, +20.0f, +36.0f };
-	Triangles[3].V2End = { -18.0f, +14.0f, +36.0f };
-	Triangles[3].V3Start = { -8.0f, 5.0f, +36.0f };
-	Triangles[3].V3End = { -14.0f, 5.0f, +32.0f };
-	Triangles[3].ColorStart = { +12.0f, +12.0f, +12.0f };
-	Triangles[3].ColorEnd = { +12.0f, +12.0f, +12.0f };
-	Triangles[3].MaterialScalarStart = 0.0f;
-	Triangles[3].MaterialScalarEnd = 0.0f;
-	Triangles[3].PrimitiveId = 2u;
-	Triangles[3].ObjectId = TriangleIndex;
-	Triangles[3].MaterialId = 5u;
-
-	TriangleIndex++;
-
-	Triangles[4].V1Start = { +34.0f, 5.0f, +40.0f };
-	Triangles[4].V1End = { +28.0f, 5.0f, +44.0f };
-	Triangles[4].V2Start = { +18.0f, +20.0f, +36.0f };
-	Triangles[4].V2End = { +18.0f, +14.0f, +36.0f };
-	Triangles[4].V3Start = { +8.0f, 5.0f, +36.0f };
-	Triangles[4].V3End = { +14.0f, 5.0f, +32.0f };
-	Triangles[4].ColorStart = { +12.0f, +12.0f, +0.0f };
-	Triangles[4].ColorEnd = { +12.0f, +12.0f, +0.0f };
-	Triangles[4].MaterialScalarStart = 0.0f;
-	Triangles[4].MaterialScalarEnd = 0.0f;
-	Triangles[4].PrimitiveId = 2u;
-	Triangles[4].ObjectId = TriangleIndex;
-	Triangles[4].MaterialId = 5u;
+	Triangles[0].MaterialId = 2u;
 
 	TriangleIndex++;
 
@@ -567,7 +524,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	L0SpheresBufferConfig.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
 	L0SpheresBufferConfig.InitialResourceState = D3D12_RESOURCE_STATE_COPY_DEST;
 	L0SpheresBufferConfig.MemoryPool = D3D12_MEMORY_POOL_L0;
-	L0SpheresBufferConfig.BufferWidth = Spheres.size() * sizeof(Sphere);
+	L0SpheresBufferConfig.BufferWidth = static_cast<uint32_t>(Spheres.size() * sizeof(Sphere));
 
 	DirectXStuff::Buffer L0SpheresBuffer{ Device.GetInterface(), L0SpheresBufferConfig, L"L0SpheresBuffer" };
 
@@ -585,7 +542,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	L1SpheresBufferConfig.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_NOT_AVAILABLE;
 	L1SpheresBufferConfig.InitialResourceState = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
 	L1SpheresBufferConfig.MemoryPool = D3D12_MEMORY_POOL_L1;
-	L1SpheresBufferConfig.BufferWidth = Spheres.size() * sizeof(Sphere);
+	L1SpheresBufferConfig.BufferWidth = static_cast<uint32_t>(Spheres.size() * sizeof(Sphere));
 
 	DirectXStuff::Buffer L1SpheresBuffer{ Device.GetInterface(), L1SpheresBufferConfig, L"L1SpheresBuffer" };
 
@@ -681,13 +638,11 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 
 	DirectXStuff::Buffer L0ChaosTexelsBuffer{ Device.GetInterface(), L0ChaosTexelsBufferConfig, L"L0ChaosTexelsBuffer" };
 
-	D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopyDestToCopySource{};
-	L0ChaosTexelsBufferCopyDestToCopySource =
-		DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE);
+	const D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopyDestToCopySource{ DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(),
+		D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_COPY_SOURCE) };
 
-	D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopySourceToCopyDest{};
-	L0ChaosTexelsBufferCopySourceToCopyDest =
-		DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(), D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST);
+	const D3D12_RESOURCE_BARRIER L0ChaosTexelsBufferCopySourceToCopyDest{ DirectXStuff::CreateResourceTransitionBarrier(L0ChaosTexelsBuffer.GetInterface(),
+		D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_COPY_DEST) };
 
 	D3D12_TEXTURE_COPY_LOCATION L0ChaosTexelsBufferTextureCopyLocation{};
 	L0ChaosTexelsBufferTextureCopyLocation.pResource = L0ChaosTexelsBuffer.GetInterface();
@@ -1136,7 +1091,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	CurrentBackBufferIndex = SwapChain.GetInterface()->GetCurrentBackBufferIndex();
 
 	Result = SwapChain.GetInterface()->GetBuffer(
-		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
+		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), std::bit_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
 	DirectXStuff::ResultCheck(Result, L"GetBuffer() failed.", L"SwapChain Prep Error");
 
 	Result = SwapChainBackBuffers[CurrentBackBufferIndex]->SetName(L"SwapChainBackBuffer00");
@@ -1150,7 +1105,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 	CurrentBackBufferIndex = SwapChain.GetInterface()->GetCurrentBackBufferIndex();
 
 	Result = SwapChain.GetInterface()->GetBuffer(
-		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), reinterpret_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
+		( UINT )CurrentBackBufferIndex, __uuidof(ID3D12Resource), std::bit_cast<void**>(&SwapChainBackBuffers[CurrentBackBufferIndex]));
 	DirectXStuff::ResultCheck(Result, L"GetBuffer() failed.", L"SwapChain Prep Error");
 
 	Result = SwapChainBackBuffers[CurrentBackBufferIndex]->SetName(L"SwapChainBackBuffer01");
@@ -1216,7 +1171,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 		IWICBitmap* pWICBitmap{ nullptr };
 		LocalResult = pWICFactory->CreateBitmapFromMemory(FinalFrameDimensions.x, FinalFrameDimensions.y, GUID_WICPixelFormat32bppRGBA,
 			FinalFrameDimensions.x * BytesPerFinalPixel, ( UINT )(FinalFrameDimensions.x * FinalFrameDimensions.y * BytesPerFinalPixel),
-			reinterpret_cast<BYTE*>(pPixelData), &pWICBitmap);
+			std::bit_cast<BYTE*>(pPixelData), &pWICBitmap);
 		DirectXStuff::ResultCheck(LocalResult, L"CreateBitmapFromMemory() failed.", L"SaveFinalFrameAsJpeg Error");
 
 		IWICStream* pWICStream{ nullptr };
@@ -1421,7 +1376,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 
 				L0RectanglesBuffer.GetInterface()->Map(0u, nullptr, &pL0RectanglesBuffer);
 
-				//memcpy_s(pL0RectanglesBuffer, L0RectanglesBufferConfig.BufferWidth, Rectangles, sizeof(Rectangles));
+				memcpy_s(pL0RectanglesBuffer, L0RectanglesBufferConfig.BufferWidth, Rectangles, sizeof(Rectangles));
 
 				L0RectanglesBuffer.GetInterface()->Unmap(0u, nullptr);
 
@@ -1431,7 +1386,7 @@ int __stdcall wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int) {
 
 				L0TrianglesBuffer.GetInterface()->Map(0u, nullptr, &pL0TrianglesBuffer);
 
-				//memcpy_s(pL0TrianglesBuffer, L0TrianglesBufferConfig.BufferWidth, Triangles, sizeof(Triangles));
+				memcpy_s(pL0TrianglesBuffer, L0TrianglesBufferConfig.BufferWidth, Triangles, sizeof(Triangles));
 
 				L0TrianglesBuffer.GetInterface()->Unmap(0u, nullptr);
 
